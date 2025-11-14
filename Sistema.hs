@@ -1,5 +1,5 @@
 import qualified Data.Map as Map
-import Data.Time (UTCTime)
+import Data.Time (UTCTime, getCurrentTime)
 
 data Item = Item {
     itemID :: String,
