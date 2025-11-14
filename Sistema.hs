@@ -49,3 +49,28 @@ removeItem time itemRemovido (Inventario mapa) =
                     , status = Falha "O item não existe"
                     }
             in Left "O item não existe"
+
+-- funcão de adicionar
+addItem :: UTCTime -> Item -> Inventario -> Either String ResultadoOperacao
+addItem time itemAdicionado (Inventario mapa) =
+    case Map.lookup (itemID itemAdicionado) mapa of
+        Just _ ->
+            let logEntry = LogEntry
+                    {timestamp = time
+                    , acao = Add
+                    , detalhes = "Falha ao adicionar, ID duplicado, Item: " ++ itemID itemAdicionado
+                    , status = Falha "item Duplicado"
+                    }
+            in Left "erro item duplicado"
+        
+        Nothing ->
+            let novoMapa = Map.insert (itemID itemAdicionado) itemAdicionado mapa
+                novoInventario = Inventario novoMapa
+                logEntry = LogEntry
+                    { timestamp = time
+                    , acao = Add
+                    , detalhes = "Item adicionado com sucesso! Item: " ++ itemID itemAdicionado
+                    , status = Sucesso
+                    }
+            in Right (novoInventario, logEntry)
+            
