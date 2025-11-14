@@ -117,6 +117,10 @@ logsDeErro = filter erroExiste
     erroExiste (LogEntry _ _ _ (Falha _)) = True
     erroExiste _ = False
 
+formatarLog :: LogEntry -> String
+formatarLog (LogEntry time acao detalhes status) =
+    show time ++ " | " ++ show acao ++ " | " ++ detalhes ++ " | " ++ show status
+
 report :: [LogEntry] -> String
 report logs =
     let erros = logsDeErro(logs)
