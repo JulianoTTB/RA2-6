@@ -28,7 +28,8 @@ data LogEntry = LogEntry {
 
 type ResultadoOperacao = (Inventario, LogEntry)
 
-removeItem :: UTCTime -> Item -> Inventario -> Either String ResultadoOperacao
+-- função de remover
+removeItem :: UTCTime -> Item -> Inventario -> Either LogEntry ResultadoOperacao
 removeItem time itemRemovido (Inventario mapa) =
     case Map.lookup (itemID itemRemovido) mapa of
         Just _ ->
@@ -44,15 +45,16 @@ removeItem time itemRemovido (Inventario mapa) =
 
         Nothing ->
             let logEntry = LogEntry
-                    { timestamp = time
+                    {timestamp = time
                     , acao = Remove
                     , detalhes = "Falha ao remover. O item não existe: " ++ itemID itemRemovido
                     , status = Falha "O item não existe"
                     }
-            in Left "O item não existe"
+            in Left logEntry
+
 
 -- funcão de adicionar
-addItem :: UTCTime -> Item -> Inventario -> Either String ResultadoOperacao
+addItem :: UTCTime -> Item -> Inventario -> Either LogEntry ResultadoOperacao
 addItem time itemAdicionado (Inventario mapa) =
     case Map.lookup (itemID itemAdicionado) mapa of
         Just _ ->
@@ -62,7 +64,7 @@ addItem time itemAdicionado (Inventario mapa) =
                     , detalhes = "Falha ao adicionar, ID duplicado, Item: " ++ itemID itemAdicionado
                     , status = Falha "item Duplicado"
                     }
-            in Left "erro item duplicado"
+            in Left logEntry
         
         Nothing ->
             let novoMapa = Map.insert (itemID itemAdicionado) itemAdicionado mapa
@@ -75,7 +77,8 @@ addItem time itemAdicionado (Inventario mapa) =
                     }
             in Right (novoInventario, logEntry)
 
-updateQty :: UTCTime -> String -> Int -> Inventario -> Either String ResultadoOperacao
+-- fução de atualizar           
+updateQty :: UTCTime -> String -> Int -> Inventario -> Either LogEntry ResultadoOperacao
 updateQty time itemID quantidadepAtualizar (Inventario mapa) =
     case Map.lookup itemID mapa of
         Just itemAtual ->
@@ -88,7 +91,7 @@ updateQty time itemID quantidadepAtualizar (Inventario mapa) =
                             , detalhes = "Falha ao atualizar, o estoque ficou negativo, item: " ++ itemID
                             , status = Falha "estoque negativo"
                             }
-                    in Left "estoque negativo"
+                    in Left logEntry
 
                 else
                     let itemAtualizado = itemAtual { quantidade = novaQuantidade }
@@ -109,7 +112,7 @@ updateQty time itemID quantidadepAtualizar (Inventario mapa) =
                     , detalhes = "Falha ao atualizar, o item não existe, item: " ++ itemID
                     , status = Falha "Item não encontrado"
                     }
-            in Left "item não existe"
+            in Left logEntry
 
 logsDeErro :: [LogEntry] -> [LogEntry]
 logsDeErro = filter erroExiste
