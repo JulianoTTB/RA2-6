@@ -75,7 +75,7 @@ addItem time itemAdicionado (Inventario mapa) =
                     }
             in Right (novoInventario, logEntry)
 
-updateQty :: UTCTime -> String -> Int -> Inventario -> Either LogEntry ResultadoOperacao
+updateQty :: UTCTime -> String -> Int -> Inventario -> Either String ResultadoOperacao
 updateQty time itemID quantidadepAtualizar (Inventario mapa) =
     case Map.lookup itemID mapa of
         Just itemAtual ->
