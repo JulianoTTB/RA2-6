@@ -1,5 +1,6 @@
 import qualified Data.Map as Map
 import Data.Time (UTCTime, getCurrentTime)
+import Data.List (isInfixOf)
 
 data Item = Item {
     itemID :: String,
@@ -73,4 +74,13 @@ addItem time itemAdicionado (Inventario mapa) =
                     , status = Sucesso
                     }
             in Right (novoInventario, logEntry)
+
+
+
+historicoPorItem :: String -> [LogEntry] -> [LogEntry]
+historicoPorItem itemId logs =
+    filter idCorrespondente logs
+   where
+    idCorrespondente logEntry =
+        itemId `isInfixOf` detalhes logEntry
             
