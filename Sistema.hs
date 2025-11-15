@@ -136,8 +136,8 @@ report logs =
         totalErros = length erros
         totalLogs = length logs
     in
-        "-===RELATORIO===-\n\n" ++
-        "Total de operaçoes: " ++ show totalLogs ++ "\n" ++
+        "-===RELATóRIO===-\n\n" ++
+        "Total de operações: " ++ show totalLogs ++ "\n" ++
         "Total de erros: " ++ show totalErros ++ "\n" ++
         "Erros registrados:\n" ++
         unlines (map formatarLog erros)
@@ -292,13 +292,13 @@ main = do
                                     aplicacao
                                 ["report"]                -> do 
                                     logsAtuais <- readIORef logsRef
-                                    print $ report logsAtuais
+                                    putStrLn $ report logsAtuais
                                     aplicacao
                                 ["exit"]                  -> do 
                                     print "encerrando..."
                                     writeIORef condicao False
                                 _ -> do
-                                    print "Comando invalido"
+                                    putStrLn "Comando inválido"
                                     aplicacao
                     
                 else
