@@ -1,5 +1,12 @@
 # RA2-6
 
+## Informações:
+<br>
+ Instituição: PUCPR<br>
+ Matéria: Programação Lógica e Funcional<br>
+ Professor: Frank de Alcantara<br>
+ Curso: Ciência da Computação<br>
+
 ## 🧑‍🎓 ALUNOS:
 <br>
 
