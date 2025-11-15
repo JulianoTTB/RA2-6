@@ -136,7 +136,7 @@ report logs =
         totalErros = length erros
         totalLogs = length logs
     in
-        "-===RELATóRIO===-\n\n" ++
+        "-===RELATÓRIO===-\n\n" ++
         "Total de operações: " ++ show totalLogs ++ "\n" ++
         "Total de erros: " ++ show totalErros ++ "\n" ++
         "Erros registrados:\n" ++
