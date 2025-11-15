@@ -130,8 +130,8 @@ report logs =
         totalErros = length erros
         totalLogs = length logs
     in
-        "-===RELATÓRIO===-\n\n" ++
-        "Total de operações: " ++ show totalLogs ++ "\n" ++
+        "-===RELATORIO===-\n\n" ++
+        "Total de operaçoes: " ++ show totalLogs ++ "\n" ++
         "Total de erros: " ++ show totalErros ++ "\n" ++
         "Erros registrados:\n" ++
         unlines (map formatarLog erros)
