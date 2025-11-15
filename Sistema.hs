@@ -8,6 +8,8 @@ import Data.List (isInfixOf)
 import Control.Exception
 import Text.Read (readMaybe)
 import Data.Maybe (mapMaybe)
+import qualified Data.Text as T
+import qualified Data.Text.IO as TIO
 
 data Item = Item {
     itemID :: String,
@@ -179,12 +181,12 @@ loadLogs = do
         else return ()
   catch
     (do
-          content <- readFile arquivo
-          let linhas = lines content
-              logs = mapMaybe readMaybe linhas 
-          return logs
+        content <- TIO.readFile arquivo   
+        let linhas = map T.unpack $ T.lines content
+            logs = mapMaybe readMaybe linhas
+        return logs
       )
-      (\(_ :: IOException) -> return [])
+    (\(_ :: IOException) -> return [])
 
 salvarInventario :: Inventario -> IO()
 salvarInventario inv = writeFile "inventario.dat" (show inv)
