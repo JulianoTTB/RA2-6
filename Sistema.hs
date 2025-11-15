@@ -1,6 +1,12 @@
 import qualified Data.Map as Map
-import Data.Time (UTCTime, getCurrentTime)
+import Data.Time (UTCTime)
+import Data.IORef
+import System.IO (hFlush, stdout)
+import System.Directory (doesFileExist)
+import Data.Time.Clock (getCurrentTime, UTCTime)
 import Data.List (isInfixOf)
+import Control.Exception
+import Text.Read (readMaybe)
 
 data Item = Item {
     itemID :: String,
@@ -145,3 +151,156 @@ historicoPorItem itemId logs =
     idCorrespondente logEntry =
         itemId `isInfixOf` detalhes logEntry
             
+
+
+loadInventario :: IO Inventario
+loadInventario = do
+  let arquivo = "inventario.dat"
+  existe <- doesFileExist arquivo
+  if not existe
+        then writeFile arquivo ""  
+        else return ()
+  catch
+    (do content <- readFile arquivo
+        case readMaybe content of
+          Just inv -> return inv
+          Nothing  -> return (Inventario Map.empty))
+    (\(_ :: IOException) -> return (Inventario Map.empty))
+    
+    
+
+loadLogs :: IO [LogEntry]
+loadLogs = do
+  let arquivo = "Auditoria.log"
+  existe <- doesFileExist arquivo
+  if not existe
+        then writeFile arquivo "" 
+        else return ()
+  catch
+    (do content <- readFile arquivo
+        case readMaybe content of
+          Just logs -> return logs
+          Nothing   -> return [])
+    (\(_ :: IOException) -> return [])
+
+
+salvarInventario :: Inventario -> IO()
+salvarInventario inv = writeFile "inventario.dat" (show inv)
+
+appendLog :: LogEntry -> IO ()
+appendLog l = appendFile "Auditoria.log" (show l ++ "\n")
+            
+            
+adicionarLog :: IORef [LogEntry] -> LogEntry -> IO ()
+adicionarLog logRef novoLog = do
+    logsAtuais <- readIORef logRef
+    writeIORef logRef (logsAtuais ++ [novoLog])            
+            
+            
+            
+main :: IO ()
+main = do
+    condicao <- newIORef True
+    
+    inventario <- loadInventario
+    logs <- loadLogs
+    
+    inventarioRef <- newIORef inventario
+    logsRef <- newIORef logs
+    let aplicacao = do
+            bandeira <- readIORef condicao
+            if bandeira
+                then do
+                    putStr "> "
+                    hFlush stdout
+                    input <- getLine
+                    let tokens = words input
+                    case tokens of
+                                ("add":id:nomeI:qtd:cat:_) -> do 
+                                    let qtdInt = read qtd :: Int
+                                    let item = Item {
+                                        itemID = id,
+                                        nome = nomeI,
+                                        quantidade = qtdInt,
+                                        categoria = cat
+                                    }
+                                    invAtual <- readIORef inventarioRef
+                                    logAtuak <- readIORef logsRef
+                                    time <- getCurrentTime
+                                    case addItem time item invAtual of
+                                        Right (novoInv, logEntry) -> do
+                                            writeIORef inventarioRef novoInv
+                                            salvarInventario novoInv
+                                            adicionarLog logsRef logEntry
+                                            appendLog logEntry
+                                            print "Item adicionado"
+                                            aplicacao
+                                        Left err -> do
+                                            appendLog err
+                                            adicionarLog logsRef err
+                                            print "Falha ao adicionar o item"
+                                            aplicacao
+                                ("remover":id:_)       -> do 
+                                    invAtual <- readIORef inventarioRef
+                                    
+                                    case Map.lookup id (itens invAtual) of
+                                        Just item -> do 
+                                            time <- getCurrentTime
+                                            case removeItem time item invAtual of
+                                                Right (novoInv, logEntry) -> do
+                                                    writeIORef inventarioRef novoInv
+                                                    salvarInventario novoInv
+                                                    appendLog logEntry
+                                                    adicionarLog logsRef logEntry
+                                                    print "Item removido"
+                                                    aplicacao
+                                                Left err -> do
+                                                    appendLog err
+                                                    adicionarLog logsRef err
+                                                    print "Falha ao remover o item"
+                                                    aplicacao
+                                        
+                                        Nothing   -> do 
+                                            putStrLn "Item não encontrado"
+                                            aplicacao
+                                ("update":id:qtd:_)       -> do
+                                    invAtual <- readIORef inventarioRef
+                                    case Map.lookup id (itens invAtual) of
+                                        Just item -> do
+                                            let qtdInt = read qtd :: Int
+                                            time <- getCurrentTime
+                                            case updateQty time id (qtdInt) invAtual of
+                                                    Right (novoInv, logEntry) -> do
+                                                        writeIORef inventarioRef novoInv
+                                                        salvarInventario novoInv
+                                                        appendLog logEntry
+                                                        adicionarLog logsRef logEntry
+                                                        print "Item Atualizado"
+                                                        aplicacao
+                                                    Left err -> do
+                                                        appendLog err
+                                                        adicionarLog logsRef err
+                                                        print "Falha ao atualizar o item"
+                                                        aplicacao
+                                        
+                                        Nothing   -> do 
+                                            putStrLn "Item não encontrado"
+                                            aplicacao
+                                ["listar"]                -> do
+                                    invAtual <- readIORef inventarioRef
+                                    mapM_ print (Map.elems (itens invAtual))
+                                    aplicacao
+                                ["report"]                -> do 
+                                    logsAtuais <- readIORef logsRef
+                                    print $ report logsAtuais
+                                    aplicacao
+                                ["exit"]                  -> do 
+                                    print "encerrando..."
+                                    writeIORef condicao False
+                                _ -> do
+                                    print "Comando invalido"
+                                    aplicacao
+                    
+                else
+                    return ()
+    aplicacao     
