@@ -240,7 +240,7 @@ main = do
                                         Left err -> do
                                             appendLog err
                                             adicionarLog logsRef err
-                                            print "Falha ao adicionar o item"
+                                            print $ err
                                             aplicacao
                                 ("remover":id:_)       -> do 
                                     invAtual <- readIORef inventarioRef
@@ -259,7 +259,7 @@ main = do
                                                 Left err -> do
                                                     appendLog err
                                                     adicionarLog logsRef err
-                                                    print "Falha ao remover o item"
+                                                    print $ err
                                                     aplicacao
                                         
                                         Nothing   -> do 
@@ -282,7 +282,7 @@ main = do
                                                     Left err -> do
                                                         appendLog err
                                                         adicionarLog logsRef err
-                                                        print "Falha ao atualizar o item"
+                                                        print $ err
                                                         aplicacao
                                         
                                         Nothing   -> do 
