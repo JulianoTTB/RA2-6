@@ -7,6 +7,7 @@ import Data.Time.Clock (getCurrentTime, UTCTime)
 import Data.List (isInfixOf)
 import Control.Exception
 import Text.Read (readMaybe)
+import Data.Maybe (mapMaybe)
 
 data Item = Item {
     itemID :: String,
@@ -177,12 +178,13 @@ loadLogs = do
         then writeFile arquivo "" 
         else return ()
   catch
-    (do content <- readFile arquivo
-        case readMaybe content of
-          Just logs -> return logs
-          Nothing   -> return [])
-    (\(_ :: IOException) -> return [])
-
+    (do
+          content <- readFile arquivo
+          let linhas = lines content
+              logs = mapMaybe readMaybe linhas 
+          return logs
+      )
+      (\(_ :: IOException) -> return [])
 
 salvarInventario :: Inventario -> IO()
 salvarInventario inv = writeFile "inventario.dat" (show inv)
